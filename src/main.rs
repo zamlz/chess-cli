@@ -222,7 +222,7 @@ fn main() {
     println!("| (__| ' \\/ -_|_-<_-< | (__| |__ | | ");
     println!(" \\___|_||_\\___/__/__/  \\___|____|___|");
     println!("                              v0.0.1");
-                                         
+
     let board = ChessBoard::new();
     let mut player_turn = PieceColor::White;
 
