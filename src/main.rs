@@ -50,6 +50,40 @@ impl PieceColor {
     }
 }
 
+trait ChessPiece {
+    const ICON: char;
+    fn validate_action(&self, action: (u8, u8)) -> bool {
+        true
+    }
+}
+/*
+            ChessPiece::Queen(_) => 'Q',
+            ChessPiece::Bishop(_) => 'i',
+            ChessPiece::Knight(_) => 'f',
+            ChessPiece::Rook(_) => '#',
+            ChessPiece::Pawn(_) => 'x',
+*/
+
+struct King;
+impl ChessPiece for King {
+    const ICON: char = 'K';
+}
+
+struct Queen;
+impl ChessPiece for Queen {}
+
+struct Bishop;
+impl ChessPiece for Bishop {}
+
+struct Knight;
+impl ChessPiece for Knight {}
+
+struct Rook;
+impl ChessPiece for Rook {}
+
+struct Pawn;
+impl ChessPiece for Pawn {}
+
 enum ChessPiece {
     EmptySpace,
     King(PieceColor),
@@ -80,12 +114,6 @@ impl ChessPiece {
 
     fn get_token(&self) -> char {
         match self {
-            ChessPiece::King(_) => 'K',
-            ChessPiece::Queen(_) => 'Q',
-            ChessPiece::Bishop(_) => 'i',
-            ChessPiece::Knight(_) => 'f',
-            ChessPiece::Rook(_) => '#',
-            ChessPiece::Pawn(_) => 'x',
             ChessPiece::EmptySpace => ' ',
         }
     }
@@ -101,10 +129,6 @@ impl ChessPiece {
             ChessPiece::EmptySpace => "",
         }
     }
-
-    //fn validate_action(&self, action: (u8, u8)) -> bool;
-
-    //fn execute_action(&self, action: (u8, u8));
 }
 
 // --------------------------------------------------------------------------
