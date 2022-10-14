@@ -8,80 +8,103 @@
 
 use std::io;
 
-// --------------------------------------------------------------------------
-// Enum Models
-// --------------------------------------------------------------------------
-
-enum PieceColor {
-    Black,
-    White,
-    Empty,
+enum ColorString {
+    Reset,
+    // Foreground colors
+    FgBlue,
+    FgRed,
+    // Background colors
+    BgBlack,
+    BgWhite,
 }
 
-enum PieceType {
-    King,
-    Queen,
-    Bishop,
-    Knight,
-    Rook,
-    Pawn,
-    EmptySpace,
+impl ColorString {
+    fn as_str(&self) -> &'static str {
+        match self {
+            ColorString::Reset => "\x1b[0m",
+            // Foreground colors
+            ColorString::FgBlue => "\x1b[34m",
+            ColorString::FgRed => "\x1b[31m",
+            // Background colors
+            ColorString::BgBlack => "\x1b[40m",
+            ColorString::BgWhite => "\x1b[47m",
+        }
+    }
 }
 
 // --------------------------------------------------------------------------
 // CHESS PIECE
 // --------------------------------------------------------------------------
 
-struct Piece {
-    color: PieceColor,
-    ptype: PieceType,
+enum PieceColor {
+    White,
+    Black,
 }
 
-impl Piece {
-    fn new(ascii: char, piece_color: PieceColor) -> Piece {
-        match ascii {
-            'K' => Piece {
-                ptype: PieceType::King,
-                color: piece_color,
-            },
-            'Q' => Piece {
-                ptype: PieceType::Queen,
-                color: piece_color,
-            },
-            'B' => Piece {
-                ptype: PieceType::Bishop,
-                color: piece_color,
-            },
-            'N' => Piece {
-                ptype: PieceType::Knight,
-                color: piece_color,
-            },
-            'R' => Piece {
-                ptype: PieceType::Rook,
-                color: piece_color,
-            },
-            'P' => Piece {
-                ptype: PieceType::Pawn,
-                color: piece_color,
-            },
-            _ => Piece {
-                ptype: PieceType::EmptySpace,
-                color: piece_color,
-            },
+impl PieceColor {
+    fn as_str(&self) -> &'static str {
+        match self {
+            PieceColor::White => "\x1b[34m\x1b[1m",
+            PieceColor::Black => "\x1b[31m\x1b[1m",
+        }
+    }
+}
+
+enum ChessPiece {
+    EmptySpace,
+    King(PieceColor),
+    Queen(PieceColor),
+    Bishop(PieceColor),
+    Knight(PieceColor),
+    Rook(PieceColor),
+    Pawn(PieceColor),
+}
+
+impl ChessPiece {
+    fn new(piece: char, color: char) -> ChessPiece {
+        let piece_color = match color {
+            'W' => PieceColor::White,
+            'B' => PieceColor::Black,
+            _ => panic!("invalid piece color"),
+        };
+        match piece {
+            'K' => ChessPiece::King(piece_color),
+            'Q' => ChessPiece::Queen(piece_color),
+            'B' => ChessPiece::Bishop(piece_color),
+            'N' => ChessPiece::Knight(piece_color),
+            'R' => ChessPiece::Rook(piece_color),
+            'P' => ChessPiece::Pawn(piece_color),
+            _ => ChessPiece::EmptySpace,
         }
     }
 
-    fn get_ascii(&self) -> char {
-        match self.ptype {
-            PieceType::King => 'K',
-            PieceType::Queen => 'Q',
-            PieceType::Bishop => 'B',
-            PieceType::Knight => 'N',
-            PieceType::Rook => 'R',
-            PieceType::Pawn => 'P',
-            PieceType::EmptySpace => ' ',
+    fn get_token(&self) -> char {
+        match self {
+            ChessPiece::King(_) => 'K',
+            ChessPiece::Queen(_) => 'Q',
+            ChessPiece::Bishop(_) => 'i',
+            ChessPiece::Knight(_) => 'f',
+            ChessPiece::Rook(_) => '#',
+            ChessPiece::Pawn(_) => 'x',
+            ChessPiece::EmptySpace => ' ',
         }
     }
+
+    fn get_color(&self) -> &'static str {
+        match self {
+            ChessPiece::King(color) => color.as_str(),
+            ChessPiece::Queen(color) => color.as_str(),
+            ChessPiece::Bishop(color) => color.as_str(),
+            ChessPiece::Knight(color) => color.as_str(),
+            ChessPiece::Rook(color) => color.as_str(),
+            ChessPiece::Pawn(color) => color.as_str(),
+            ChessPiece::EmptySpace => "",
+        }
+    }
+
+    //fn validate_action(&self, action: (u8, u8)) -> bool;
+
+    //fn execute_action(&self, action: (u8, u8));
 }
 
 // --------------------------------------------------------------------------
@@ -89,7 +112,7 @@ impl Piece {
 // --------------------------------------------------------------------------
 
 struct ChessBoard {
-    map: [Piece; 64],
+    map: [ChessPiece; 64],
 }
 
 impl ChessBoard {
@@ -97,77 +120,77 @@ impl ChessBoard {
         ChessBoard {
             map: [
                 // Rank 8
-                Piece::new('R', PieceColor::Black),
-                Piece::new('N', PieceColor::Black),
-                Piece::new('B', PieceColor::Black),
-                Piece::new('Q', PieceColor::Black),
-                Piece::new('K', PieceColor::Black),
-                Piece::new('B', PieceColor::Black),
-                Piece::new('N', PieceColor::Black),
-                Piece::new('R', PieceColor::Black),
+                ChessPiece::new('R', 'B'),
+                ChessPiece::new('N', 'B'),
+                ChessPiece::new('B', 'B'),
+                ChessPiece::new('Q', 'B'),
+                ChessPiece::new('K', 'B'),
+                ChessPiece::new('B', 'B'),
+                ChessPiece::new('N', 'B'),
+                ChessPiece::new('R', 'B'),
                 // Rank 7
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
-                Piece::new('P', PieceColor::Black),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
+                ChessPiece::new('P', 'B'),
                 // Rank 6
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
                 // Rank 5
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
                 // Rank 4
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
                 // Rank 3
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
-                Piece::new(' ', PieceColor::Empty),
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
+                ChessPiece::EmptySpace,
                 // Rank 2
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
-                Piece::new('P', PieceColor::White),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
+                ChessPiece::new('P', 'W'),
                 // Rank 1
-                Piece::new('R', PieceColor::White),
-                Piece::new('N', PieceColor::White),
-                Piece::new('B', PieceColor::White),
-                Piece::new('Q', PieceColor::White),
-                Piece::new('K', PieceColor::White),
-                Piece::new('B', PieceColor::White),
-                Piece::new('N', PieceColor::White),
-                Piece::new('R', PieceColor::White),
+                ChessPiece::new('R', 'W'),
+                ChessPiece::new('N', 'W'),
+                ChessPiece::new('B', 'W'),
+                ChessPiece::new('Q', 'W'),
+                ChessPiece::new('K', 'W'),
+                ChessPiece::new('B', 'W'),
+                ChessPiece::new('N', 'W'),
+                ChessPiece::new('R', 'W'),
             ],
         }
     }
@@ -175,6 +198,7 @@ impl ChessBoard {
     fn display(&self, player: &PieceColor) {
         println!("\n\n   *---+---+---+---+---+---+---+---*");
         for i in 0..8 {
+            // compute the real rank
             let rank = if let PieceColor::White = player {
                 7 - i
             } else {
@@ -183,12 +207,21 @@ impl ChessBoard {
             print!(" {} |", rank + 1);
 
             for j in 0..8 {
+                // Compute the real file
                 let file = if let PieceColor::White = player {
                     j
                 } else {
                     7 - j
                 };
-                print!(" {} |", self.map[8 * rank + file].get_ascii());
+                // color time
+                if (rank + file) % 2 == 0 {
+                    print!("{} ", ColorString::BgBlack.as_str());
+                } else {
+                    print!("{} ", ColorString::BgWhite.as_str());
+                }
+                print!("{}", self.map[8 * rank + file].get_color());
+                print!("{}", self.map[8 * rank + file].get_token());
+                print!(" {}|", ColorString::Reset.as_str());
             }
             println!("");
             println!("   *---+---+---+---+---+---+---+---*");
@@ -217,11 +250,14 @@ impl ChessBoard {
 // --------------------------------------------------------------------------
 
 fn main() {
+    print!("{}", ColorString::FgBlue.as_str());
     println!("  ___ _                 ___ _    ___ ");
     println!(" / __| |_  ___ ______  / __| |  |_ _|");
     println!("| (__| ' \\/ -_|_-<_-< | (__| |__ | | ");
     println!(" \\___|_||_\\___/__/__/  \\___|____|___|");
+    print!("{}", ColorString::FgRed.as_str());
     println!("                              v0.0.1");
+    print!("{}", ColorString::Reset.as_str());
 
     let board = ChessBoard::new();
     let mut player_turn = PieceColor::White;
