@@ -51,83 +51,51 @@ impl PieceColor {
 }
 
 trait ChessPiece {
-    const ICON: char;
+    fn get_icon(&self) -> char;
     fn validate_action(&self, action: (u8, u8)) -> bool {
         true
     }
 }
-/*
-            ChessPiece::Queen(_) => 'Q',
-            ChessPiece::Bishop(_) => 'i',
-            ChessPiece::Knight(_) => 'f',
-            ChessPiece::Rook(_) => '#',
-            ChessPiece::Pawn(_) => 'x',
-*/
 
 struct King;
 impl ChessPiece for King {
-    const ICON: char = 'K';
+    fn get_icon(&self) -> char {
+        'K'
+    }
 }
 
 struct Queen;
-impl ChessPiece for Queen {}
-
-struct Bishop;
-impl ChessPiece for Bishop {}
-
-struct Knight;
-impl ChessPiece for Knight {}
-
-struct Rook;
-impl ChessPiece for Rook {}
-
-struct Pawn;
-impl ChessPiece for Pawn {}
-
-enum ChessPiece {
-    EmptySpace,
-    King(PieceColor),
-    Queen(PieceColor),
-    Bishop(PieceColor),
-    Knight(PieceColor),
-    Rook(PieceColor),
-    Pawn(PieceColor),
+impl ChessPiece for Queen {
+    fn get_icon(&self) -> char {
+        'Q'
+    }
 }
 
-impl ChessPiece {
-    fn new(piece: char, color: char) -> ChessPiece {
-        let piece_color = match color {
-            'W' => PieceColor::White,
-            'B' => PieceColor::Black,
-            _ => panic!("invalid piece color"),
-        };
-        match piece {
-            'K' => ChessPiece::King(piece_color),
-            'Q' => ChessPiece::Queen(piece_color),
-            'B' => ChessPiece::Bishop(piece_color),
-            'N' => ChessPiece::Knight(piece_color),
-            'R' => ChessPiece::Rook(piece_color),
-            'P' => ChessPiece::Pawn(piece_color),
-            _ => ChessPiece::EmptySpace,
-        }
+struct Bishop;
+impl ChessPiece for Bishop {
+    fn get_icon(&self) -> char {
+        'i'
     }
+}
 
-    fn get_token(&self) -> char {
-        match self {
-            ChessPiece::EmptySpace => ' ',
-        }
+struct Knight;
+impl ChessPiece for Knight {
+    fn get_icon(&self) -> char {
+        'f'
     }
+}
 
-    fn get_color(&self) -> &'static str {
-        match self {
-            ChessPiece::King(color) => color.as_str(),
-            ChessPiece::Queen(color) => color.as_str(),
-            ChessPiece::Bishop(color) => color.as_str(),
-            ChessPiece::Knight(color) => color.as_str(),
-            ChessPiece::Rook(color) => color.as_str(),
-            ChessPiece::Pawn(color) => color.as_str(),
-            ChessPiece::EmptySpace => "",
-        }
+struct Rook;
+impl ChessPiece for Rook {
+    fn get_icon(&self) -> char {
+        '#'
+    }
+}
+
+struct Pawn;
+impl ChessPiece for Pawn {
+    fn get_icon(&self) -> char {
+        'x'
     }
 }
 
@@ -136,91 +104,19 @@ impl ChessPiece {
 // --------------------------------------------------------------------------
 
 struct ChessBoard {
-    map: [ChessPiece; 64],
+    map: [[Box<dyn ChessPiece>; 8]; 8],
 }
 
 impl ChessBoard {
     fn new() -> ChessBoard {
         ChessBoard {
-            map: [
-                // Rank 8
-                ChessPiece::new('R', 'B'),
-                ChessPiece::new('N', 'B'),
-                ChessPiece::new('B', 'B'),
-                ChessPiece::new('Q', 'B'),
-                ChessPiece::new('K', 'B'),
-                ChessPiece::new('B', 'B'),
-                ChessPiece::new('N', 'B'),
-                ChessPiece::new('R', 'B'),
-                // Rank 7
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                ChessPiece::new('P', 'B'),
-                // Rank 6
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                // Rank 5
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                // Rank 4
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                // Rank 3
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                ChessPiece::EmptySpace,
-                // Rank 2
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                ChessPiece::new('P', 'W'),
-                // Rank 1
-                ChessPiece::new('R', 'W'),
-                ChessPiece::new('N', 'W'),
-                ChessPiece::new('B', 'W'),
-                ChessPiece::new('Q', 'W'),
-                ChessPiece::new('K', 'W'),
-                ChessPiece::new('B', 'W'),
-                ChessPiece::new('N', 'W'),
-                ChessPiece::new('R', 'W'),
-            ],
+            map: [[Box::new(Pawn {}); 8]; 8],
         }
     }
 
     fn display(&self, player: &PieceColor) {
         println!("\n\n   *---+---+---+---+---+---+---+---*");
+        /*
         for i in 0..8 {
             // compute the real rank
             let rank = if let PieceColor::White = player {
@@ -257,6 +153,7 @@ impl ChessBoard {
         } else {
             println!("     h   g   f   e   d   c   b   a  ");
         }
+        */
     }
 
     fn take_turn(&self, player: &PieceColor) {
